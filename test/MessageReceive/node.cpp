@@ -1,0 +1,46 @@
+#include "node.h"
+#include <roscpp_tutorials/TwoInts.h>
+
+void estimated_pose_callback (const geometry_msgs::PoseWithCovarianceStamped & pose)
+{
+  printf ("Received pose %f, %f, %f\n", pose.pose.pose.position.x,
+          pose.pose.pose.position.y, pose.pose.pose.position.z);
+
+  std::cout << "pose : " << QJsonDocument(pose.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+}
+
+Node::Node():
+  chatter("chatter"),
+  poseSub("estimated_pose", &estimated_pose_callback),
+  serviceClient("/rosout/get_loggers")
+{
+  std::string ros_master = "127.0.0.1";
+
+  printf ("Connecting to server at %s\n", ros_master.c_str());
+  nh.initNode (ros_master.c_str());
+
+  nh.subscribe (poseSub);
+  nh.advertise(chatter);
+
+  m_timer = new QTimer();
+  connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimer()));
+  m_timer->start(1000);
+
+  nh.serviceClient(serviceClient);
+}
+
+void Node::onTimer()
+{
+  static int i=1;
+  i++;
+  std_msgs::String str_msg;
+  str_msg.data = QString("Hello %1").arg(i).toStdString();
+  chatter.publish(str_msg);
+
+  roscpp::GetLoggersRequest req;
+  serviceClient.call(req, [](const roscpp::GetLoggers::Response &loggers){
+    std::cout << "loggers : " << QJsonDocument(loggers.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+
+  });
+}
+
