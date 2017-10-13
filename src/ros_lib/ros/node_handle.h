@@ -91,7 +91,10 @@ const uint8_t MODE_MESSAGE        = 9;
 const uint8_t MODE_MSG_CHECKSUM   = 10;    // checksum for msg and topic id
 
 const uint32_t SERIAL_MSG_TIMEOUT  = 2000;   // 2000 milliseconds to recieve all of message data
-const uint32_t READ_BUFFER_SIZE = 4096;
+const uint32_t READ_BUFFER_SIZE = 4096; // at each read() we will ask up to READ_BUFFER_SIZE bytes
+
+const size_t MESSAGE_HEADER_BYTES = 10; // size of the header
+const size_t BUFFER_OVER_ALLOCATION = 100*1024; //if the tx or rx buffer hasn't enough capacity, we will allocate this more
 
 using rosserial_msgs::TopicInfo;
 
@@ -121,7 +124,7 @@ protected:
        * Setup Functions
        */
 public:
-  NodeHandle(uint32_t input_size=10000000, uint32_t output_size=10000000, QObject *parent=0) :
+  NodeHandle(uint32_t input_size=10000, uint32_t output_size=10000, QObject *parent=0) :
     NodeHandleBase_(parent),
     INPUT_SIZE(input_size),
     OUTPUT_SIZE(output_size),
@@ -272,6 +275,13 @@ public:
         }else if( mode_ == MODE_TOPIC_H ){  /* top half of topic id */
           topic_ += data<<8;
           mode_ = MODE_MESSAGE;
+
+          // if needed expand buffer
+          if(bytes_ + MESSAGE_HEADER_BYTES > message_in.size())
+          {
+            message_in.resize(bytes_ + MESSAGE_HEADER_BYTES + BUFFER_OVER_ALLOCATION);
+          }
+
           if(bytes_ == 0)
             mode_ = MODE_MSG_CHECKSUM;
         }else if( mode_ == MODE_MSG_CHECKSUM ){ /* do checksum */
@@ -381,8 +391,8 @@ public:
   }
 
   /* Register a new Service Server */
-  template<typename MReq, typename MRes, typename ObjT>
-  bool advertiseService(ServiceServer<MReq,MRes,ObjT>& srv){
+  template<typename MType>
+  bool advertiseService(ServiceServer<MType>& srv){
     bool v = advertise(srv.pub);
     size_t i = subscribers.size();
     subscribers.push_back(static_cast<Subscriber_*>(&srv));
@@ -438,12 +448,18 @@ public:
 
     /* serialize message */
     size_t expected_l = msg->serialize_size();
-    if( expected_l+9 >= OUTPUT_SIZE ){
-      logerror("Message from device dropped: message larger than buffer.");
-      return -1;
+
+    if(expected_l + MESSAGE_HEADER_BYTES > message_out.size())
+    {
+      message_out.resize(expected_l + MESSAGE_HEADER_BYTES + BUFFER_OVER_ALLOCATION);
     }
 
     size_t l = msg->serialize(message_out.data()+9);
+
+    if(expected_l != l)
+    {
+      logerror("Internal error : expected_l != l ; memory could be corrupted");
+    }
 
     /* setup the header */
     message_out[0] = 0xff;
@@ -463,19 +479,13 @@ public:
       chk += message_out[i];
     message_out[l++] = 255 - (chk%256);
 
-    if( l <= OUTPUT_SIZE ){
-      hardware_.write(message_out.data(), l);
-      return l;
-    }else{
-      logerror("Message from device dropped: message larger than buffer.");
-      return -1;
-    }
+    hardware_.write(message_out.data(), l);
+    return l;
   }
 
 private slots:
   void onReadyRead()
   {
-    std::cout << "ready read" << std::endl;
     spinOnce();
   }
 

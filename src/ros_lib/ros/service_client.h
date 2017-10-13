@@ -46,11 +46,11 @@ namespace ros {
   template<typename MType>
   class ServiceClient : public Subscriber_  {
 
-    typedef typename MType::Request MReq;
-    typedef typename MType::Response MRes;
-    typedef std::function<void(const MRes&)> CallBackT;
-
     public:
+      typedef typename MType::Request MReq;
+      typedef typename MType::Response MRes;
+      typedef std::function<void(const MRes&)> CallbackT;
+
       ServiceClient(const char* topic_name) : 
         pub(topic_name, rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_PUBLISHER)
       {
@@ -58,7 +58,7 @@ namespace ros {
         this->waiting = false;
       }
 
-      void call(const MReq & request, CallBackT callback)
+      void call(const MReq & request, CallbackT callback)
       {
         if(waiting)
         {
@@ -88,7 +88,7 @@ namespace ros {
       }
 
       bool waiting;
-      CallBackT cb_;
+      CallbackT cb_;
 
   public:
       Publisher<MReq> pub;

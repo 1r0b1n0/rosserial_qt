@@ -495,6 +495,7 @@ class Message:
         f.write('#include <stdint.h>\n')
         f.write('#include <string.h>\n')
         f.write('#include <stdlib.h>\n')
+        f.write('#include <string>\n')
         f.write('#include <vector>\n')
         f.write('#include <array>\n')
         f.write('#include <stdexcept>\n')
@@ -502,7 +503,7 @@ class Message:
         f.write('#include <QJsonDocument>\n')
         f.write('#include <QJsonObject>\n')
         f.write('#include <QJsonArray>\n')
-        f.write('#include "ros/msg.h"\n')
+        f.write('#include <ros/msg.h>\n')
 
     def _write_msg_includes(self, f):
         for i in self.includes:
@@ -760,7 +761,7 @@ ROS_TO_EMBEDDED_TYPES = {
     'int32': ('int32_t', 4, PrimitiveDataType, []),
     'uint32': ('uint32_t', 4, PrimitiveDataType, []),
     'int64': ('int64_t', 8, PrimitiveDataType, []),
-    'uint64': ('uint64_t', 4, PrimitiveDataType, []),
+    'uint64': ('uint64_t', 8, PrimitiveDataType, []),
     'float32': ('float', 4, PrimitiveDataType, []),
     'float64': ('double', 8, PrimitiveDataType, []),
     'time': ('ros::Time', 8, TimeDataType, ['ros/time']),
@@ -794,7 +795,8 @@ def main():
 
     # copy ros_lib stuff in
     src_dir = rospack.get_path("rosserial_qt")
-    #shutil.copytree(src_dir + "/src/ros_lib", path + "/ros_lib")
+    shutil.rmtree(path + "/ros_lib", ignore_errors = True)
+    shutil.copytree(src_dir + "/src/ros_lib", path + "/ros_lib")
 
     rosserial_generate(rospack, path + "/ros_lib")
 
