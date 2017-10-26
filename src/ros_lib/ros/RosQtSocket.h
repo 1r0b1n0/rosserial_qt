@@ -43,7 +43,9 @@ public:
 
   void doConnect();
 
-  void init (const std::string &server_hostname);
+  void open (const std::string &server_hostname, uint16_t port);
+
+  void close ();
 
   int64_t read (unsigned char *data, int max_length);
 
@@ -58,9 +60,10 @@ signals:
   void readyRead();
 
 private:
-  QTcpSocket m_socket;
-  quint16 m_port;
-  QHostAddress m_address;
+  QTcpSocket socket_;
+  bool socket_valid_;
+  quint16 port_;
+  QHostAddress address_;
 };
 
 #endif

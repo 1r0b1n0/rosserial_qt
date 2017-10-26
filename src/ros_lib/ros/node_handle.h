@@ -121,14 +121,15 @@ protected:
   uint32_t OUTPUT_SIZE;
 
   /*
-       * Setup Functions
-       */
+  * Setup Functions
+  */
 public:
   NodeHandle(uint32_t input_size=10000, uint32_t output_size=10000, QObject *parent=0) :
     NodeHandleBase_(parent),
     INPUT_SIZE(input_size),
     OUTPUT_SIZE(output_size),
-    configured_(false)
+    configured_(false),
+    isActive_(false)
   {
     message_in.resize(INPUT_SIZE);
     message_out.resize(OUTPUT_SIZE);
@@ -149,18 +150,21 @@ public:
     spinOnce();
   }
 
-  /* Start serial, initialize buffers */
-  void initNode(){
-
-  }
-
   /* Start a named port, which may be network server IP, initialize buffers */
-  void initNode(const std::string &portName){
-    hardware_.init(portName);
+  void open(const std::string &hostName, uint16_t port = 11411){
+    isActive_ = true;
+    hardware_.open(hostName, port);
     mode_ = 0;
     bytes_ = 0;
     index_ = 0;
     topic_ = 0;
+  }
+
+  void close()
+  {
+    isActive_ = false;
+    configured_ = false;
+    hardware_.close();
   }
 
 protected:
@@ -172,6 +176,7 @@ protected:
   unsigned int checksum_;
 
   bool configured_;
+  bool isActive_; // true if we should try to connect
 
   /* used for syncing the time */
   uint32_t last_sync_time;
@@ -186,6 +191,9 @@ public:
 
   virtual int spinOnce(){
     unsigned char buffer[READ_BUFFER_SIZE];
+
+    if(!isActive_)
+        return 0;
 
     /* restart if timed out */
     uint32_t c_time = hardware_.time();

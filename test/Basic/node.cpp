@@ -18,7 +18,7 @@ Node::Node():
   std::string ros_master = "127.0.0.1";
 
   printf ("Connecting to server at %s\n", ros_master.c_str());
-  nh.initNode (ros_master.c_str());
+  nh.open (ros_master.c_str());
 
   nh.subscribe (poseSub);
   nh.advertise(chatter);

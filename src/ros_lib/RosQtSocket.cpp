@@ -1,46 +1,51 @@
 #include "ros/RosQtSocket.h"
 
-#define DEFAULT_PORT 11411
-
 using std::string;
 using std::cerr;
 using std::endl;
 
 
 RosQtSocket::RosQtSocket(QObject *parent):
-  QObject(parent)
+  QObject(parent),
+  socket_valid_(false)
 {
-  QObject::connect(&m_socket, SIGNAL(readyRead()), this, SIGNAL(readyRead()));
-  QObject::connect(&m_socket, SIGNAL(connected()), this, SLOT(onConnected()));
+  QObject::connect(&socket_, SIGNAL(readyRead()), this, SIGNAL(readyRead()));
+  QObject::connect(&socket_, SIGNAL(connected()), this, SLOT(onConnected()));
 }
 
 void RosQtSocket::doConnect()
 {
-  if(m_socket.state() == QAbstractSocket::UnconnectedState)
+  if(socket_.state() == QAbstractSocket::UnconnectedState)
   {
-    m_socket.connectToHost(m_address, m_port);
+    socket_.connectToHost(address_, port_);
   }
 
 }
 
-void RosQtSocket::init(const std::string &server_hostname)
+void RosQtSocket::open(const std::string &server_hostname, uint16_t port)
 {
-  m_address = QHostAddress(QString::fromStdString(server_hostname));
-  m_port = DEFAULT_PORT;
+  socket_valid_ = true;
+  address_ = QHostAddress(QString::fromStdString(server_hostname));
+  port_ = port;
 
   doConnect();
 }
 
+void RosQtSocket::close()
+{
+  socket_.close();
+}
+
 int64_t RosQtSocket::read(unsigned char *data, int max_length)
 {
-  if(m_socket.state() != QAbstractSocket::ConnectedState)
+  if(socket_.state() != QAbstractSocket::ConnectedState)
   {
     std::cerr << "Failed to receive data from server, not connected " << std::endl;
     doConnect();
     return -1;
   }
 
-  int64_t result = m_socket.read((char*)data, max_length);
+  int64_t result = socket_.read((char*)data, max_length);
   if(result < 0)
   {
     std::cerr << "Failed to receive data from server" << std::endl;
@@ -52,7 +57,7 @@ int64_t RosQtSocket::read(unsigned char *data, int max_length)
 
 bool RosQtSocket::write(const unsigned char *data, int length)
 {
-  if(m_socket.state() != QAbstractSocket::ConnectedState)
+  if(socket_valid_ && socket_.state() != QAbstractSocket::ConnectedState)
   {
     std::cerr << "Failed to write data to the server, not connected " << std::endl;
     doConnect();
@@ -60,7 +65,7 @@ bool RosQtSocket::write(const unsigned char *data, int length)
   }
   else
   {
-    qint64 result = m_socket.write((const char*)data, length);
+    qint64 result = socket_.write((const char*)data, length);
     if(result != length)
     {
       std::cerr << "Failed to write all the data to the server" << std::endl;
@@ -78,5 +83,5 @@ unsigned long RosQtSocket::time()
 
 void RosQtSocket::onConnected()
 {
-  m_socket.setSocketOption(QAbstractSocket::LowDelayOption, 1);
+  socket_.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 }

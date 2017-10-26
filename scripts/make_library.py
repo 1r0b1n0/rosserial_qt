@@ -460,7 +460,7 @@ class Message:
         f.write('      size_t offset = 0;\n')
         for d in self.data:
             d.deserialize(f)
-        f.write('     return offset;\n');
+        f.write('      return offset;\n');
         f.write('    }\n')
         f.write('\n')
 
