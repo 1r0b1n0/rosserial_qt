@@ -25,7 +25,7 @@ Node::Node():
   }
 
   printf ("Connecting to server at %s\n", ros_master.c_str());
-  nh.initNode (ros_master.c_str());
+  nh.open(ros_master.c_str());
 
   nh.subscribe (chatterSub);
   nh.advertise(chatter);

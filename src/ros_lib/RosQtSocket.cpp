@@ -1,5 +1,7 @@
 #include "ros/RosQtSocket.h"
 
+//#define ROSQT_VERBOSE
+
 using std::string;
 using std::cerr;
 using std::endl;
@@ -40,7 +42,9 @@ int64_t RosQtSocket::read(unsigned char *data, int max_length)
 {
   if(socket_.state() != QAbstractSocket::ConnectedState)
   {
+#ifdef ROSQT_VERBOSE
     std::cerr << "Failed to receive data from server, not connected " << std::endl;
+#endif
     doConnect();
     return -1;
   }
@@ -59,7 +63,9 @@ bool RosQtSocket::write(const unsigned char *data, int length)
 {
   if(socket_valid_ && socket_.state() != QAbstractSocket::ConnectedState)
   {
+#ifdef ROSQT_VERBOSE
     std::cerr << "Failed to write data to the server, not connected " << std::endl;
+#endif
     doConnect();
     return false;
   }

@@ -17,6 +17,7 @@ SOURCES += main.cpp \
     ../../src/ros_lib/duration.cpp \
     ../../src/ros_lib/time.cpp \
     ../../src/ros_lib/RosQtSocket.cpp \
+    ../../src/ros_lib/node_handle.cpp \
     node.cpp
 
 DEFINES += QT_DEPRECATED_WARNINGS

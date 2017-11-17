@@ -60,10 +60,6 @@ namespace ros {
 
       void call(const MReq & request, CallbackT callback)
       {
-        if(waiting)
-        {
-          std::cerr << "Double service call on " << this->topic_ << std::endl;
-        }
         if(!pub.nh_->connected()) return;
         waiting = true;
         cb_ = callback;
