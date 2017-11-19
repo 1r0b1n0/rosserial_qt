@@ -1,4 +1,6 @@
 <launch>
+<!-- Do not use ; does not yet work with 32bit messages -->
+
   <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
     <param name="port" value="tcp"/>
   </node>
