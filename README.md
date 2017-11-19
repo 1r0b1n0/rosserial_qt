@@ -11,7 +11,7 @@ For the moment it only supports TCP/IP, but it could be easily adapted for UDP (
 Remarks:
 * C++11 support is required
 * Unlike other client implementations of rosserial, the *NodeHandle* uses a dynamically sized buffer.
-* There is no need to call spinOnce() manually : the *NodeHandle* will call spinOnce() periodically and on reception of new data, using the Qt event loopŝ
+* There is no need to call spinOnce() manually : the *NodeHandle* will call spinOnce() periodically and on reception of new data, using the Qt event loop
 * Unlike rosserial_arduino using C-style arrays, the message generation script will convert arrays to std::vector and std::array
 
 ## Examples
