@@ -49,7 +49,7 @@ namespace ros {
     public:
       typedef typename MType::Request MReq;
       typedef typename MType::Response MRes;
-      typedef std::function<void(const MRes&)> CallbackT;
+      typedef std::function<void(const MRes&, bool)> CallbackT;
 
       ServiceClient(const char* topic_name) : 
         pub(topic_name, rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_PUBLISHER)
@@ -74,11 +74,18 @@ namespace ros {
       // these refer to the subscriber
       void callback(unsigned char *data) override{
         MRes ret;
-        ret.deserialize(data);
+        // First byte give us the success status
+        bool success = data[0];
+
+        if(success)
+        {
+            // Access from the second byte
+            ret.deserialize(data+1);
+        }
         waiting = false;
         if(cb_)
         {
-          cb_(ret);
+          cb_(ret, success);
         }
         cb_ = nullptr;
       }
