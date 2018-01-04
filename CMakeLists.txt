@@ -7,4 +7,12 @@ find_package(catkin REQUIRED COMPONENTS roscpp rosserial_msgs rosserial_python r
 
 catkin_package()
 
+install(
+  DIRECTORY src/ros_lib
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/src
+)
 
+catkin_install_python(
+  PROGRAMS scripts/make_library.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
