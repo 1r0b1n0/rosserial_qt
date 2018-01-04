@@ -47,6 +47,7 @@
 namespace ros {
 
 class NodeHandleBase_ : public QObject{
+  Q_OBJECT
 public:
   NodeHandleBase_(QObject *parent=0) : QObject(parent){}
 
@@ -72,6 +73,7 @@ class NodeHandle : public NodeHandleBase_
   Q_OBJECT  
 
   Q_PROPERTY(bool isConnected READ connected NOTIFY isConnectedChanged)
+  Q_PROPERTY(float latency READ latency NOTIFY latencyChanged)
 
 protected:
   RosQtSocket hardware_;
@@ -115,6 +117,7 @@ protected:
 
   bool configured_;
   bool isActive_; // true if we should try to connect
+  float latency_;
 
   /* used for syncing the time */
   uint32_t last_sync_time;
@@ -228,9 +231,11 @@ public:
   bool getParam(const std::string &name, float* param, unsigned int length=1, int timeout = 1000);
   bool getParam(const std::string &name, std::string *param, unsigned int length=1, int timeout = 1000);
   bool isConnected() const;
+  float latency() const;
 
 signals:
   void isConnectedChanged(bool isConnected);
+  void latencyChanged(float latency);
 };
 
 }
