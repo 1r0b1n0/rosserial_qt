@@ -62,6 +62,7 @@ public:
 #include "ros/subscriber.h"
 #include "ros/service_server.h"
 #include "ros/service_client.h"
+#include "ros/action_client.h"
 
 namespace ros {
 
@@ -189,6 +190,17 @@ public:
     size_t i = subscribers.size();
     subscribers.push_back(static_cast<Subscriber_*>(&srv));
     srv.id_ = i+100;
+    return v;
+  }
+
+  /* Register a new Action Client */
+  template<typename ActionType>
+  bool actionClient(ActionClient<ActionType>& ac){
+    bool v = advertise(ac.goal_pub);
+    v |= advertise(ac.cancel_pub);
+    v |= subscribe(ac.status_sub);
+    v |= subscribe(ac.feedback_sub);
+    v |= subscribe(ac.result_sub);
     return v;
   }
 
