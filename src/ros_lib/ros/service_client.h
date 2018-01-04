@@ -32,8 +32,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _ROS_SERVICE_CLIENT_H_
-#define _ROS_SERVICE_CLIENT_H_
+#ifndef ROS_SERVICE_CLIENT_H_
+#define ROS_SERVICE_CLIENT_H_
 
 #include <functional>
 #include "rosserial_msgs/TopicInfo.h"
@@ -70,7 +70,7 @@ namespace ros {
       const std::string & getMsgMD5() override { return MRes::getMD5(); }
       int getEndpointType() override{ return rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_SUBSCRIBER; }
 
-  private:
+    private:
       // these refer to the subscriber
       void callback(unsigned char *data) override{
         MRes ret;
@@ -86,7 +86,7 @@ namespace ros {
       bool waiting;
       CallbackT cb_;
 
-  public:
+    public:
       Publisher<MReq> pub;
   };
 

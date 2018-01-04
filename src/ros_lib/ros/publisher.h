@@ -32,8 +32,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _ROS_PUBLISHER_H_
-#define _ROS_PUBLISHER_H_
+#ifndef ROS_PUBLISHER_H_
+#define ROS_PUBLISHER_H_
 
 #include <string>
 #include "rosserial_msgs/TopicInfo.h"

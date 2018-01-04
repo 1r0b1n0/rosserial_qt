@@ -94,12 +94,12 @@ protected:
   uint32_t OUTPUT_SIZE;
 
   /*
-  * Setup Functions
-  */
+   * Setup Functions
+   */
 public:
   NodeHandle(uint32_t input_size=10000, uint32_t output_size=10000, QObject *parent=0);
 
-  void timerEvent(QTimerEvent *event);
+  void timerEvent(QTimerEvent *event) override;
 
   /* Start a named port, which may be network server IP, initialize buffers */
   void open(const std::string &hostName, uint16_t port = 11411);
@@ -126,19 +126,19 @@ protected:
 
 public:
   /* This function goes in your loop() function, it handles
-       *  serial input and callbacks for subscribers.
-       */
+   *  serial input and callbacks for subscribers.
+   */
 
 
-  virtual int spinOnce();
+  virtual int spinOnce() override;
 
 
   /* Are we connected to the PC? */
   bool connected() const override;
 
   /********************************************************************
-       * Time functions
-       */
+   * Time functions
+   */
 
   void requestSyncTime();
 
@@ -149,8 +149,8 @@ public:
   void setNow( Time & new_now );
 
   /********************************************************************
-    * Topic Management
-    */
+   * Topic Management
+   */
 
   /* Register a new publisher */
   template<typename T>
@@ -194,7 +194,7 @@ public:
 
   void negotiateTopics();
 
-  virtual int publish(int id, const Msg * msg);
+  virtual int publish(int id, const Msg * msg) override;
 
 public slots:
   void setConfigured(bool isConnected);
@@ -203,8 +203,8 @@ private slots:
   void onReadyRead();
 
   /********************************************************************
-       * Logging
-       */
+   * Logging
+   */
 
 private:
   void log(char byte, const char * msg);
@@ -217,8 +217,8 @@ public:
   void logfatal(const char*msg);
 
   /********************************************************************
-       * Parameters
-       */
+   * Parameters
+   */
 
 private:
   bool param_recieved;
