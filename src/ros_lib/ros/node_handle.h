@@ -47,6 +47,7 @@
 namespace ros {
 
 class NodeHandleBase_ : public QObject{
+  Q_OBJECT
 public:
   NodeHandleBase_(QObject *parent=0) : QObject(parent){}
 
@@ -61,6 +62,7 @@ public:
 #include "ros/subscriber.h"
 #include "ros/service_server.h"
 #include "ros/service_client.h"
+#include "ros/action_client.h"
 
 namespace ros {
 
@@ -72,6 +74,7 @@ class NodeHandle : public NodeHandleBase_
   Q_OBJECT  
 
   Q_PROPERTY(bool isConnected READ connected NOTIFY isConnectedChanged)
+  Q_PROPERTY(float latency READ latency NOTIFY latencyChanged)
 
 protected:
   RosQtSocket hardware_;
@@ -92,12 +95,12 @@ protected:
   uint32_t OUTPUT_SIZE;
 
   /*
-  * Setup Functions
-  */
+   * Setup Functions
+   */
 public:
   NodeHandle(uint32_t input_size=10000, uint32_t output_size=10000, QObject *parent=0);
 
-  void timerEvent(QTimerEvent *event);
+  void timerEvent(QTimerEvent *event) override;
 
   /* Start a named port, which may be network server IP, initialize buffers */
   void open(const std::string &hostName, uint16_t port = 11411);
@@ -115,6 +118,7 @@ protected:
 
   bool configured_;
   bool isActive_; // true if we should try to connect
+  float latency_;
 
   /* used for syncing the time */
   uint32_t last_sync_time;
@@ -123,19 +127,19 @@ protected:
 
 public:
   /* This function goes in your loop() function, it handles
-       *  serial input and callbacks for subscribers.
-       */
+   *  serial input and callbacks for subscribers.
+   */
 
 
-  virtual int spinOnce();
+  virtual int spinOnce() override;
 
 
   /* Are we connected to the PC? */
   bool connected() const override;
 
   /********************************************************************
-       * Time functions
-       */
+   * Time functions
+   */
 
   void requestSyncTime();
 
@@ -146,8 +150,8 @@ public:
   void setNow( Time & new_now );
 
   /********************************************************************
-    * Topic Management
-    */
+   * Topic Management
+   */
 
   /* Register a new publisher */
   template<typename T>
@@ -189,9 +193,20 @@ public:
     return v;
   }
 
+  /* Register a new Action Client */
+  template<typename ActionType>
+  bool actionClient(ActionClient<ActionType>& ac){
+    bool v = advertise(ac.goal_pub);
+    v |= advertise(ac.cancel_pub);
+    v |= subscribe(ac.status_sub);
+    v |= subscribe(ac.feedback_sub);
+    v |= subscribe(ac.result_sub);
+    return v;
+  }
+
   void negotiateTopics();
 
-  virtual int publish(int id, const Msg * msg);
+  virtual int publish(int id, const Msg * msg) override;
 
 public slots:
   void setConfigured(bool isConnected);
@@ -200,8 +215,8 @@ private slots:
   void onReadyRead();
 
   /********************************************************************
-       * Logging
-       */
+   * Logging
+   */
 
 private:
   void log(char byte, const char * msg);
@@ -214,8 +229,8 @@ public:
   void logfatal(const char*msg);
 
   /********************************************************************
-       * Parameters
-       */
+   * Parameters
+   */
 
 private:
   bool param_recieved;
@@ -228,9 +243,11 @@ public:
   bool getParam(const std::string &name, float* param, unsigned int length=1, int timeout = 1000);
   bool getParam(const std::string &name, std::string *param, unsigned int length=1, int timeout = 1000);
   bool isConnected() const;
+  float latency() const;
 
 signals:
   void isConnectedChanged(bool isConnected);
+  void latencyChanged(float latency);
 };
 
 }

@@ -21,6 +21,7 @@ public slots:
 
 private:
     void addTwoInts(const roscpp_tutorials::TwoIntsRequest &req, roscpp_tutorials::TwoIntsResponse &res);
+    void estimated_pose_callback (const geometry_msgs::PoseWithCovarianceStamped & pose);
 
     ros::NodeHandle nh;
     QTimer *m_timer;

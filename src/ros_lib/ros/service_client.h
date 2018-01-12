@@ -32,8 +32,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _ROS_SERVICE_CLIENT_H_
-#define _ROS_SERVICE_CLIENT_H_
+#ifndef ROS_SERVICE_CLIENT_H_
+#define ROS_SERVICE_CLIENT_H_
 
 #include <functional>
 #include "rosserial_msgs/TopicInfo.h"
@@ -49,7 +49,7 @@ namespace ros {
     public:
       typedef typename MType::Request MReq;
       typedef typename MType::Response MRes;
-      typedef std::function<void(const MRes&)> CallbackT;
+      typedef std::function<void(const MRes&, bool)> CallbackT;
 
       ServiceClient(const char* topic_name) : 
         pub(topic_name, rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_PUBLISHER)
@@ -70,15 +70,22 @@ namespace ros {
       const std::string & getMsgMD5() override { return MRes::getMD5(); }
       int getEndpointType() override{ return rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_SUBSCRIBER; }
 
-  private:
+    private:
       // these refer to the subscriber
       void callback(unsigned char *data) override{
         MRes ret;
-        ret.deserialize(data);
+        // First byte give us the success status
+        bool success = data[0];
+
+        if(success)
+        {
+            // Access from the second byte
+            ret.deserialize(data+1);
+        }
         waiting = false;
         if(cb_)
         {
-          cb_(ret);
+          cb_(ret, success);
         }
         cb_ = nullptr;
       }
@@ -86,7 +93,7 @@ namespace ros {
       bool waiting;
       CallbackT cb_;
 
-  public:
+    public:
       Publisher<MReq> pub;
   };
 

@@ -1,17 +1,9 @@
 #include "node.h"
 #include <roscpp_tutorials/TwoInts.h>
 
-void estimated_pose_callback (const geometry_msgs::PoseWithCovarianceStamped & pose)
-{
-  printf ("Received pose %f, %f, %f\n", pose.pose.pose.position.x,
-          pose.pose.pose.position.y, pose.pose.pose.position.z);
-
-  std::cout << "Received pose : " << QJsonDocument(pose.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
-}
-
 Node::Node():
   chatter("chatter"),
-  poseSub("estimated_pose", &estimated_pose_callback),
+  poseSub("estimated_pose", std::bind(&Node::estimated_pose_callback, this, std::placeholders::_1)),
   serviceClient("/rosout/get_loggers"),
   serviceServer("add_two_ints", std::bind(&Node::addTwoInts, this, std::placeholders::_1, std::placeholders::_2))
 {
@@ -29,9 +21,18 @@ Node::Node():
 
   nh.serviceClient(serviceClient);
 
-  // not supported by rosserial_server
+  // not yet supported by rosserial_server
   //nh.advertiseService(serviceServer);
 }
+
+void Node::estimated_pose_callback (const geometry_msgs::PoseWithCovarianceStamped & pose)
+{
+  printf ("Received pose %f, %f, %f\n", pose.pose.pose.position.x,
+          pose.pose.pose.position.y, pose.pose.pose.position.z);
+
+  std::cout << "Received pose : " << QJsonDocument(pose.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+}
+
 
 void Node::onTimer()
 {
