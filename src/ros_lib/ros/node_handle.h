@@ -108,6 +108,11 @@ public:
   /* Disconnect from server */
   void close();
 
+  RosQtSocket& getHardware()
+  {
+    return hardware_;
+  }
+
 protected:
   //State machine variables for spinOnce
   int mode_;

@@ -87,6 +87,11 @@ unsigned long RosQtSocket::time()
   return static_cast<unsigned long>(QDateTime::currentMSecsSinceEpoch());
 }
 
+QString RosQtSocket::getAddress() const
+{
+  return address_.toString();
+}
+
 void RosQtSocket::onConnected()
 {
   socket_.setSocketOption(QAbstractSocket::LowDelayOption, 1);
