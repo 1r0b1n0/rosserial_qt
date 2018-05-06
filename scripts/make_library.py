@@ -247,6 +247,43 @@ class TimeDataType(PrimitiveDataType):
     def deserialize_json_value(self):
         return 'ros::Time(val.toObject().value("secs").toInt(), val.toObject().value("nsecs").toInt())'
 
+class DurationDataType(PrimitiveDataType):
+    def __init__(self, name, ty, bytes):
+        self.name = name
+        self.type = ty
+        self.sec = PrimitiveDataType(name + '.sec', 'uint32_t', 4)
+        self.nsec = PrimitiveDataType(name + '.nsec', 'uint32_t', 4)
+
+    def make_initializer(self, f, trailer):
+        f.write('      %s()%s\n' % (self.name, trailer))
+
+    def make_declaration(self, f):
+        f.write('      typedef %s _%s_type;\n      _%s_type %s;\n' % (self.type, self.name, self.name, self.name))
+
+    def serialize_json_value(self):
+        return 'QJsonObject{QPair<QString, QJsonValue>("secs", (int)this->%s), QPair<QString, QJsonValue>("nsecs", (int)this->%s)}' % (
+        self.name + '.sec', self.name + '.nsec');
+
+    def serialize_json(self, f):
+        f.write('      jsonObj.insert("%s", %s);\n' % (self.name, self.serialize_json_value()))
+
+    def serialize(self, f):
+        self.sec.serialize(f)
+        self.nsec.serialize(f)
+
+    def serialize_size(self, f):
+        f.write('      offset += %d;\n' % (self.sec.bytes+self.nsec.bytes) )
+
+    def deserialize(self, f):
+        self.sec.deserialize(f)
+        self.nsec.deserialize(f)
+
+    def deserialize_json(self, f):
+        f.write('      this->%s = ros::Duration(rootObj.value("%s").toObject().value("secs").toInt(), rootObj.value("%s").toObject().value("nsecs").toInt());\n' % (self.name, self.name, self.name))
+
+    def deserialize_json_value(self):
+        return 'ros::Duration(val.toObject().value("secs").toInt(), val.toObject().value("nsecs").toInt())'
+
 class ArrayDataType(PrimitiveDataType):
     def __init__(self, name, ty, bytes, cls, array_size=None):
         self.name = name
@@ -765,7 +802,7 @@ ROS_TO_EMBEDDED_TYPES = {
     'float32': ('float', 4, PrimitiveDataType, []),
     'float64': ('double', 8, PrimitiveDataType, []),
     'time': ('ros::Time', 8, TimeDataType, ['ros/time']),
-    'duration': ('ros::Duration', 8, TimeDataType, ['ros/duration']),
+    'duration': ('ros::Duration', 8, DurationDataType, ['ros/duration']),
     'string': ('std::string', 0, StringDataType, []),
     'Header': ('std_msgs::Header', 0, MessageDataType, ['std_msgs/Header'])
 }
