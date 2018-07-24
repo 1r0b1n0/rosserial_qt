@@ -71,8 +71,14 @@ class EnumerationType:
         self.value = value
 
     def make_declaration(self, f):
-        f.write('      enum { %s = %s };\n' % (self.name, self.value))
+        if(self.type != 'string'):
+            f.write('      enum { %s = %s };\n' % (self.name, self.value))
+        else:
+            f.write('      static const std::string %s;\n' % (self.name))
 
+    def make_assignations(self, f, className):
+        if(self.type == 'string'):
+            f.write('  const std::string %s::%s = "%s";\n' % (className, self.name, self.value))
 
 class PrimitiveDataType:
     """ Our datatype is a C/C++ primitive. """
@@ -561,6 +567,10 @@ class Message:
             e.make_declaration(f)
         f.write('\n')
 
+    def _write_static_assignations(self, f, className):
+        for e in self.enums:
+            e.make_assignations(f, className)
+
     def _write_getType(self, f):
         f.write('    static const std::string& getType(){\n')
         f.write('      static std::string type = "%s/%s";\n' % (self.package, self.name))
@@ -588,6 +598,7 @@ class Message:
         self._write_getMD5(f)
         f.write('\n')
         f.write('  };\n')
+        self._write_static_assignations(f, self.name);
 
     def make_header(self, f):
         f.write('#ifndef _ROS_%s_%s_h\n' % (self.package, self.name))
