@@ -78,7 +78,7 @@ class EnumerationType:
 
     def make_assignations(self, f, className):
         if(self.type == 'string'):
-            f.write('  const std::string %s::%s = "%s";\n' % (className, self.name, self.value))
+            f.write('  const std::string %s::%s = "%s";\n' % (className, self.name, self.value.replace(" ","")))
 
 class PrimitiveDataType:
     """ Our datatype is a C/C++ primitive. """
