@@ -1,4 +1,4 @@
-/* 
+/*
  * Software License Agreement (BSD License)
  *
  * Copyright (c) 2011, Willow Garage, Inc.
@@ -36,6 +36,7 @@
 #define ROS_SERVICE_CLIENT_H_
 
 #include <functional>
+#include "rosserial_msgs/ServiceCallResult.h"
 #include "rosserial_msgs/TopicInfo.h"
 
 #include "ros/publisher.h"
@@ -50,15 +51,16 @@ namespace ros {
       typedef typename MType::Request MReq;
       typedef typename MType::Response MRes;
       typedef std::function<void(const MRes&, bool)> CallbackT;
+      typedef std::function<void(const MRes&, bool, uint8_t)> CallbackWithResultT;
 
-      ServiceClient(const char* topic_name) : 
+      ServiceClient(const char* topic_name) :
         pub(topic_name, rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_PUBLISHER)
       {
         this->topic_ = topic_name;
         this->waiting = false;
       }
 
-      void call(const MReq & request, CallbackT callback)
+      void call(const MReq& request, CallbackT callback)
       {
         if(!pub.nh_->connected()) return;
         waiting = true;
@@ -66,8 +68,16 @@ namespace ros {
         pub.publish(request);
       }
 
-      const std::string & getMsgType() override { return MRes::getType(); }
-      const std::string & getMsgMD5() override { return MRes::getMD5(); }
+      void call(const MReq& request, CallbackWithResultT callback)
+      {
+        if(!pub.nh_->connected()) return;
+        waiting = true;
+        cbWithResult_ = callback;
+        pub.publish(request);
+      }
+
+      const std::string& getMsgType() override { return MRes::getType(); }
+      const std::string& getMsgMD5() override { return MRes::getMD5(); }
       int getEndpointType() override{ return rosserial_msgs::TopicInfo::ID_SERVICE_CLIENT + rosserial_msgs::TopicInfo::ID_SUBSCRIBER; }
 
     private:
@@ -75,23 +85,33 @@ namespace ros {
       void callback(unsigned char *data) override{
         MRes ret;
         // First byte give us the success status
-        bool success = data[0];
+        const uint8_t callResult = data[0];
+        const bool success = callResult == rosserial_msgs::ServiceCallResult::SUCCESS;
 
         if(success)
         {
             // Access from the second byte
             ret.deserialize(data+1);
         }
+
         waiting = false;
+
         if(cb_)
         {
           cb_(ret, success);
         }
+        else if(cbWithResult_)
+        {
+          cbWithResult_(ret, success, callResult);
+        }
+
         cb_ = nullptr;
+        cbWithResult_ = nullptr;
       }
 
       bool waiting;
       CallbackT cb_;
+      CallbackWithResultT cbWithResult_;
 
     public:
       Publisher<MReq> pub;
