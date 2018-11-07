@@ -1,5 +1,6 @@
 #include "node.h"
 #include <roscpp_tutorials/TwoInts.h>
+#include <rosserial_msgs/ServiceCallResult.h>
 
 Node::Node():
   chatter("chatter"),
@@ -43,10 +44,40 @@ void Node::onTimer()
   chatter.publish(str_msg);
 
   roscpp::GetLoggersRequest req;
-  serviceClient.call(req, [](const roscpp::GetLoggers::Response &loggers){
-    std::cout << "loggers : " << QJsonDocument(loggers.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
-  });
+  if(i % 2 == 0)
+  {
+    std::cout << "Service client call with bool and uint8_t results API" << std::endl;
+    serviceClient.call(req, [this](const roscpp::GetLoggers::Response &loggers, bool ok, uint8_t callResult){
+      (void)ok;
+      switch(callResult)
+      {
+      case rosserial_msgs::ServiceCallResult::NO_EXISTENCE:
+          std::cout << "Service " << serviceClient.topic_ << " does not exist" << std::endl;
+          break;
+      case rosserial_msgs::ServiceCallResult::CALL_FAILED:
+          std::cout << "Call to service " << serviceClient.topic_ << " failed" << std::endl;
+          break;
+      case rosserial_msgs::ServiceCallResult::SUCCESS:
+        std::cout << "loggers : " << QJsonDocument(loggers.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+        break;
+      }
+    });
+  }
+  else
+  {
+    std::cout << "Service client call with only bool result API" << std::endl;
+    serviceClient.call(req, [this](const roscpp::GetLoggers::Response &loggers, bool ok){
+      if(ok)
+      {
+          std::cout << "loggers : " << QJsonDocument(loggers.serializeAsJson()).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+      }
+      else
+      {
+          std::cout << "Call to service " << serviceClient.topic_ << " failed" << std::endl;
+      }
+    });
+  }
 }
 
 void Node::addTwoInts(const roscpp_tutorials::TwoIntsRequest &req, roscpp_tutorials::TwoIntsResponse &res)
