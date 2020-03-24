@@ -51,7 +51,7 @@ public:
 
   bool write (const unsigned char *data, int length);
 
-  unsigned long time ();
+  unsigned long time () const;
 
   QString getAddress() const;
 

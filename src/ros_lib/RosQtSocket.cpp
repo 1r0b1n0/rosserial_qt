@@ -82,7 +82,7 @@ bool RosQtSocket::write(const unsigned char *data, int length)
   return true;
 }
 
-unsigned long RosQtSocket::time()
+unsigned long RosQtSocket::time() const
 {
   return static_cast<unsigned long>(QDateTime::currentMSecsSinceEpoch());
 }

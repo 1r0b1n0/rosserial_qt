@@ -71,7 +71,7 @@ using rosserial_msgs::TopicInfo;
 /* Node Handle */
 class NodeHandle : public NodeHandleBase_
 {
-  Q_OBJECT  
+  Q_OBJECT
 
   Q_PROPERTY(bool isConnected READ connected NOTIFY isConnectedChanged)
   Q_PROPERTY(float latency READ latency NOTIFY latencyChanged)
@@ -150,7 +150,7 @@ public:
 
   void syncTime(uint8_t * data);
 
-  Time now();
+  Time now() const;
 
   void setNow( Time & new_now );
 

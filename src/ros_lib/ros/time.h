@@ -57,14 +57,11 @@ namespace ros
       double toSec() const { return (double)sec + 1e-9*(double)nsec; }
       void fromSec(double t) { sec = (uint32_t) floor(t); nsec = (uint32_t) round((t-sec) * 1e9); }
 
-      uint32_t toNsec() { return (uint32_t)sec*1000000000ull + (uint32_t)nsec; }
+      uint64_t toNsec() const { return (uint64_t)sec*1000000000ull + (uint64_t)nsec; }
       Time& fromNSec(uint64_t t);
 
       Time& operator +=(const Duration &rhs);
       Time& operator -=(const Duration &rhs);
-
-      static Time now();
-      static void setNow( Time & new_now);
   };
 
 }

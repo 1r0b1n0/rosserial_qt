@@ -251,7 +251,7 @@ void ros::NodeHandle::syncTime(uint8_t *data)
     emit latencyChanged(latency_);
 }
 
-ros::Time ros::NodeHandle::now()
+ros::Time ros::NodeHandle::now() const
 {
     uint32_t ms = hardware_.time();
     Time current_time;
